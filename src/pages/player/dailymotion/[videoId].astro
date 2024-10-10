@@ -36,7 +36,14 @@ const options: Options = {
         "settings",
         "fullscreen",
     ],
+    quality: {
+        default: 1080,
+        //@ts-ignore
+        options: source.sources.map((source) => source.size),
+    },
 };
+
+console.log(source);
 ---
 
 <Layout title={dm.metadata.title}>

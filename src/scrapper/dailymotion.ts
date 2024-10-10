@@ -133,9 +133,9 @@ export class Dailymotion {
     };
 
     private fetchMetadata = async (videoId: string): Promise<any> => {
-        return TEST_METADATA;
+        // return TEST_METADATA;
         const response = await fetch(
-            "https://www.dailymotion.com/player/metadata/video/k1qHMhAd8SkWeABAfEC",
+            "https://www.dailymotion.com/player/metadata/video/" + videoId,
             {
                 headers: {
                     accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -153,11 +153,7 @@ export class Dailymotion {
                     "user-agent":
                         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
                 },
-                referrerPolicy: "strict-origin-when-cross-origin",
-                body: null,
                 method: "GET",
-                mode: "cors",
-                credentials: "include",
             }
         );
 
@@ -169,7 +165,7 @@ export class Dailymotion {
     };
 
     private fetchM3U8 = async (url: string): Promise<any> => {
-        return TEST_M3U8;
+        // return TEST_M3U8;
         const response = await fetch(url, {
             headers: {
                 accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -187,11 +183,7 @@ export class Dailymotion {
                 "user-agent":
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Safari/537.36",
             },
-            referrerPolicy: "strict-origin-when-cross-origin",
-            body: null,
             method: "GET",
-            mode: "cors",
-            credentials: "include",
         });
 
         if (!response.ok) {
@@ -205,22 +197,23 @@ export class Dailymotion {
         const lines = m3u8.split("\n");
         const data: any = [];
 
-        let stream: any = {};
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
             if (line.startsWith("#EXT-X-STREAM-INF")) {
-                stream = {
-                    bandwidth: line.match(/BANDWIDTH=(\d+)/)[1],
-                    codecs: line.match(/CODECS="([^"]+)"/)[1],
-                    resolution: line.match(/RESOLUTION=(\d+x\d+)/)[1],
-                    name: line.match(/NAME="([^"]+)"/)[1],
+                //@ts-ignore
+                const stream = {
+                    bandwidth: line.match(/BANDWIDTH=(\d+)/)?.[1] || "",
+                    codecs: line.match(/CODECS="([^"]+)"/)?.[1] ?? "",
+                    resolution: line.match(/RESOLUTION=(\d+x\d+)/)?.[1] || "",
+                    name: Number(line.match(/NAME="([^"]+)"/)?.[1]) ?? "",
                     url:
-                        line.match(/PROGRESSIVE-URI="([^"]+)"/)[1] + "#cell=cf",
+                        (line.match(/PROGRESSIVE-URI="([^"]+)"/)?.[1] ?? "") +
+                        "#cell=cf",
                 };
                 data.push(stream);
             }
         }
 
-        return data.sort((a: any, b: any) => b.bandwidth - a.bandwidth);
+        return data.sort((a: any, b: any) => a.name - b.name);
     };
 }
