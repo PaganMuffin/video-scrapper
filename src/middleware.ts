@@ -14,10 +14,16 @@ export const onRequest = defineMiddleware(async (context, next) => {
         const cacheResponse = await cache.match(cacheKay);
         if (cacheResponse) {
             console.log("cached");
-            return cacheResponse;
+            //@ts-ignore
+            return new Response(cacheResponse.body, {
+                status: cacheResponse.status,
+                statusText: cacheResponse.statusText,
+                headers: cacheResponse.headers,
+            });
         } else {
             console.log("not cached");
             const response = await next();
+            response.headers.set("Cache-Control", "public, max-age=60");
             //@ts-ignore
             await cache.put(cacheKay, response.clone());
             return response;
