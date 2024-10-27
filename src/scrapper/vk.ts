@@ -3989,7 +3989,7 @@ export class VK {
 
     private fetchMetadata = async (): Promise<any> => {
         const userId = this.videoId.split("_")[0].replace("video", "");
-        return TEST_METADATA;
+        // return TEST_METADATA;
         const response = await fetch("https://vk.com/al_video.php?act=show", {
             headers: {
                 "content-type": "application/x-www-form-urlencoded",
