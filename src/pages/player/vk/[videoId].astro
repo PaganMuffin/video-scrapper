@@ -1,0 +1,49 @@
+---
+import Player from "../../../components/Player.astro";
+import Layout from "../../../layouts/Layout.astro";
+import type { Options, SourceInfo } from "plyr";
+import { VK } from "../../../scrapper/vk";
+
+const videoId = Astro.params.videoId;
+
+if (!videoId) {
+    return {
+        status: 404,
+        error: "Video ID is required",
+    };
+}
+
+const dm = new VK(videoId);
+await dm.fetchData();
+
+const source: SourceInfo = {
+    type: "video",
+    poster: dm.thumbnail,
+    sources: dm.qualities.map((res: any) => ({
+        src: res.url,
+        type: "video/mp4",
+        size: res.quality,
+    })),
+};
+
+const options: Options = {
+    controls: [
+        "play",
+        "progress",
+        "current-time",
+        "mute",
+        "volume",
+        "settings",
+        "fullscreen",
+    ],
+    quality: {
+        default: 1080,
+        //@ts-ignore
+        options: source.sources.map((source) => source.size),
+    },
+};
+---
+
+<Layout title={dm.title}>
+    <Player source={source} options={options} />
+</Layout>
