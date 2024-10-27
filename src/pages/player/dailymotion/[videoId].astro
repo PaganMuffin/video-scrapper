@@ -13,39 +13,21 @@ if (!videoId) {
     };
 }
 
-const dm = new Dailymotion(videoId);
-await dm.fetchData();
+const video = new Dailymotion(videoId);
+await video.fetchData();
 
 const source: SourceInfo = {
+    title: video.title,
     type: "video",
-    poster: dm.metadata.thumbnails["1080"],
-    sources: dm.m3u8Data.map((m3u8: any) => ({
+    poster: video.thumbnail,
+    sources: video.qualities.map((m3u8: any) => ({
         src: m3u8.url,
         type: "video/mp4",
-        size: m3u8.name,
+        size: m3u8.quality,
     })),
 };
-
-const options: Options = {
-    controls: [
-        "play",
-        "progress",
-        "current-time",
-        "mute",
-        "volume",
-        "settings",
-        "fullscreen",
-    ],
-    quality: {
-        default: 1080,
-        //@ts-ignore
-        options: source.sources.map((source) => source.size),
-    },
-};
-
-console.log(source);
 ---
 
-<Layout title={dm.metadata.title}>
-    <Player source={source} options={options} />
+<Layout title={video.title}>
+    <Player source={source} />
 </Layout>

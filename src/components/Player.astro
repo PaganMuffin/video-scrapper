@@ -1,13 +1,34 @@
 ---
-import type { Options, SourceInfo } from "plyr";
+import type { Options, QualityOptions, SourceInfo } from "plyr";
 
 export type Props = {
     source: SourceInfo;
-    options: Options;
-    crossorigin?: "anonymous" | "use-credentials";
 };
 
-const { source, options, crossorigin = "anonymous" } = Astro.props;
+const { source } = Astro.props;
+
+const options: Options & { urls: { download: string } } = {
+    controls: [
+        "play-large",
+        "play",
+        "progress",
+        "current-time",
+        "mute",
+        "volume",
+        "settings",
+        "download",
+        "fullscreen",
+    ],
+    urls: {
+        download: source.sources.find((src) => src.size === 1080)?.src ?? "",
+    },
+    quality: {
+        default: 1080,
+        options: source.sources
+            .map((src) => src.size)
+            .filter((size): size is number => size !== undefined),
+    },
+};
 ---
 
 <script>
@@ -17,7 +38,19 @@ const { source, options, crossorigin = "anonymous" } = Astro.props;
     const plyrEls = document.querySelectorAll(".plyr");
     Plyr.setup(plyrEls).forEach((player, i) => {
         const plyrEl = plyrEls[i] as HTMLElement;
-        player.source = JSON.parse(plyrEl.dataset.plyrSource as string);
+        const plyrSource = JSON.parse(plyrEl.dataset.plyrSource as string);
+        const savedQuality = JSON.parse(
+            localStorage.getItem("plyr") || '{"quality": 1080}'
+        ).quality;
+
+        const quality = plyrSource.sources.find(
+            (src: { src: string; size: number }) => src.size === savedQuality
+        );
+
+        // @ts-ignore
+        player.config.urls.download = quality.src; //(plyrSource);
+
+        player.source = plyrSource;
     });
 </script>
 <video

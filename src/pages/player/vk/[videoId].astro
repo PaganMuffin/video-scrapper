@@ -13,37 +13,21 @@ if (!videoId) {
     };
 }
 
-const dm = new VK(videoId);
-await dm.fetchData();
+const video = new VK(videoId);
+await video.fetchData();
 
 const source: SourceInfo = {
+    title: video.title,
     type: "video",
-    poster: dm.thumbnail,
-    sources: dm.qualities.map((res: any) => ({
+    poster: video.thumbnail,
+    sources: video.qualities.map((res: any) => ({
         src: res.url,
         type: "video/mp4",
         size: res.quality,
     })),
 };
-
-const options: Options = {
-    controls: [
-        "play",
-        "progress",
-        "current-time",
-        "mute",
-        "volume",
-        "settings",
-        "fullscreen",
-    ],
-    quality: {
-        default: 1080,
-        //@ts-ignore
-        options: source.sources.map((source) => source.size),
-    },
-};
 ---
 
-<Layout title={dm.title}>
-    <Player source={source} options={options} />
+<Layout title={video.title}>
+    <Player source={source} />
 </Layout>

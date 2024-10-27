@@ -3981,22 +3981,20 @@ export class VK {
     }
 
     public fetchData = async () => {
-        this.metadata = await this.fetchMetadata(this.videoId);
-        this.qualities = this.extractResolutions(this.metadata);
+        this.metadata = await this.fetchMetadata();
+        this.qualities = this.extractResolutions();
         this.title = this.metadata.payload[1][4].player.params[0].md_title;
         this.thumbnail = this.metadata.payload[1][4].player.params[0].jpg;
     };
 
-    private fetchMetadata = async (videoId: string): Promise<any> => {
-        videoId = "video604627980_456239207";
-        const userId = videoId.split("_")[0].replace("video", "");
-        // return TEST_METADATA;
+    private fetchMetadata = async (): Promise<any> => {
+        const userId = this.videoId.split("_")[0].replace("video", "");
+        return TEST_METADATA;
         const response = await fetch("https://vk.com/al_video.php?act=show", {
             headers: {
                 "content-type": "application/x-www-form-urlencoded",
                 accept: "*/*",
-                Referer:
-                    "https://vk.com/video/@id604627980?z=video604627980_456239207%2Fpl_604627980_-2",
+                Referer: `https://vk.com/video/@id${userId}?z=${this.videoId}%2Fpl_${userId}_-2`,
                 "x-requested-with": "XMLHttpRequest",
                 "accept-language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
                 "cache-control": "max-age=0",
@@ -4026,7 +4024,7 @@ export class VK {
                 screen: "0",
                 show_all_videos: "0",
                 show_next: "1",
-                video: videoId.replace("video", ""),
+                video: this.videoId.replace("video", ""),
                 webcast: "0",
             }),
         });
@@ -4038,9 +4036,7 @@ export class VK {
         return await response.json();
     };
 
-    private extractResolutions = (
-        metadata: any
-    ): { quality: number; url: string }[] => {
+    private extractResolutions = (): { quality: number; url: string }[] => {
         const keys = [
             "url144",
             "url240",
@@ -4053,8 +4049,8 @@ export class VK {
         let resolutions = [];
 
         for (let key of keys) {
-            const resUrl = metadata.payload[1][4].player.params[0][key];
-            console.log(resUrl);
+            const resUrl = this.metadata.payload[1][4].player.params[0][key];
+
             if (resUrl) {
                 const obj = {
                     quality: Number(key.replace("url", "")),
@@ -4064,6 +4060,6 @@ export class VK {
             }
         }
 
-        return resolutions;
+        return resolutions.sort((a, b) => a.quality - b.quality).reverse();
     };
 }

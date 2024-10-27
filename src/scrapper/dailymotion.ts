@@ -115,27 +115,33 @@ https://vod.cf.dmcdn.net/sec2(cIojOzw7lYCkZEhPtv9no5k5D3anb5V8gemlSDUWt-SYkYruJA
 `;
 
 export class Dailymotion {
-    videoId: string;
-    metadata: any = {};
-    m3u8Url: string = "";
-    rawM3U8: string = "";
-    m3u8Data: any = {};
+    private videoId: string;
+    private metadata: any = {};
+    private m3u8Url: string = "";
+    private rawM3U8: string = "";
+    private m3u8Data: any = {};
+    qualities: { quality: number; url: string }[] = [];
+    title: string = "";
+    thumbnail: string = "";
 
     constructor(videoId: string) {
         this.videoId = videoId;
     }
 
     public fetchData = async () => {
-        this.metadata = await this.fetchMetadata(this.videoId);
+        this.metadata = await this.fetchMetadata();
         this.m3u8Url = this.metadata.qualities.auto[0].url;
-        this.rawM3U8 = await this.fetchM3U8(this.m3u8Url);
-        this.m3u8Data = this.parseM3U8(this.rawM3U8);
+        this.rawM3U8 = await this.fetchM3U8();
+        this.m3u8Data = this.parseM3U8();
+        this.qualities = this.extractResolutions();
+        this.title = this.metadata.title;
+        this.thumbnail = this.metadata.thumbnails["720"];
     };
 
-    private fetchMetadata = async (videoId: string): Promise<any> => {
+    private fetchMetadata = async (): Promise<any> => {
         // return TEST_METADATA;
         const response = await fetch(
-            "https://www.dailymotion.com/player/metadata/video/" + videoId,
+            "https://www.dailymotion.com/player/metadata/video/" + this.videoId,
             {
                 headers: {
                     accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
@@ -164,9 +170,9 @@ export class Dailymotion {
         return await response.json();
     };
 
-    private fetchM3U8 = async (url: string): Promise<any> => {
+    private fetchM3U8 = async (): Promise<any> => {
         // return TEST_M3U8;
-        const response = await fetch(url, {
+        const response = await fetch(this.m3u8Url, {
             headers: {
                 accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
                 "accept-language": "pl-PL,pl;q=0.9,en-US;q=0.8,en;q=0.7",
@@ -193,8 +199,8 @@ export class Dailymotion {
         return await response.text();
     };
 
-    private parseM3U8 = (m3u8: string): any => {
-        const lines = m3u8.split("\n");
+    private parseM3U8 = (): any => {
+        const lines = this.rawM3U8.split("\n");
         const data: any = [];
 
         for (let i = 0; i < lines.length; i++) {
@@ -215,5 +221,20 @@ export class Dailymotion {
         }
 
         return data.sort((a: any, b: any) => a.name - b.name);
+    };
+
+    private extractResolutions = (): { quality: number; url: string }[] => {
+        const qualities: { quality: number; url: string }[] = [];
+        const qualitiesData = this.m3u8Data;
+
+        for (let i = 0; i < qualitiesData.length; i++) {
+            const quality = qualitiesData[i];
+            qualities.push({
+                quality: quality.name,
+                url: quality.url,
+            });
+        }
+
+        return qualities.sort((a, b) => a.quality - b.quality).reverse();
     };
 }
