@@ -73,8 +73,9 @@ export class OK {
 
     public fetchData = async () => {
         this.metadata = await this.fetchMetadata(this.videoId);
-        console.log(this.metadata.flashvars.metadata);
         this.qualities = this.extractResolutions(this.metadata);
+        this.title = this.metadata.flashvars.metadata.movie.title;
+        this.thumbnail = this.metadata.flashvars.metadata.movie.poster;
     };
 
     private fetchMetadata = async (videoId: string): Promise<any> => {
