@@ -13,7 +13,12 @@ if (!videoId) {
     };
 }
 
-const video = new Dailymotion(videoId);
+return Astro.redirect(
+    `https://geo.dailymotion.com/player.html?video=${videoId}`,
+    301
+);
+
+const video = new Dailymotion(videoId as string);
 await video.fetchData();
 
 const source: SourceInfo = {
