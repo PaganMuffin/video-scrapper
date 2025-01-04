@@ -43,9 +43,14 @@ const options: Options & { urls: { download: string } } = {
             localStorage.getItem("plyr") || '{"quality": 1080}'
         ).quality;
 
-        const quality = plyrSource.sources.find(
+        let quality = plyrSource.sources.find(
             (src: { src: string; size: number }) => src.size === savedQuality
         );
+
+        if (!quality) {
+            quality = 1080;
+            localStorage.setItem("plyr", JSON.stringify({ quality: 1080 }));
+        }
 
         // @ts-ignore
         player.config.urls.download = quality.src; //(plyrSource);
