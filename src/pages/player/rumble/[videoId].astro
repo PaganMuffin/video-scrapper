@@ -1,0 +1,32 @@
+---
+import type { SourceInfo } from "plyr";
+import Player from "../../../components/Player.astro";
+import Layout from "../../../layouts/Layout.astro";
+import { Rumble } from "../../../scrapper/rumble";
+
+const videoId = Astro.params.videoId;
+
+if (!videoId) {
+    return {
+        status: 404,
+        error: "Video ID is required",
+    };
+}
+
+const video = new Rumble(videoId);
+await video.fetchData();
+const source: SourceInfo = {
+    title: video.title,
+    type: "video",
+    poster: video.thumbnail,
+    sources: video.qualities.map((res: any) => ({
+        src: res.url,
+        type: "video/mp4",
+        size: res.quality,
+    })),
+};
+---
+
+<Layout title={video.title}>
+    <Player source={source} />
+</Layout>
