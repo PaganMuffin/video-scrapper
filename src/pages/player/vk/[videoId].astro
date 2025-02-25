@@ -1,8 +1,8 @@
 ---
 import Player from "../../../components/Player.astro";
 import Layout from "../../../layouts/Layout.astro";
-import { Dailymotion } from "../../../scrapper/dailymotion";
 import type { Options, SourceInfo } from "plyr";
+import { VK } from "../../../scrapper/vk";
 
 const videoId = Astro.params.videoId;
 
@@ -13,22 +13,17 @@ if (!videoId) {
     };
 }
 
-return Astro.redirect(
-    `https://geo.dailymotion.com/player.html?video=${videoId}`,
-    301
-);
-
-const video = new Dailymotion(videoId as string);
+const video = new VK(videoId);
 await video.fetchData();
 
 const source: SourceInfo = {
     title: video.title,
     type: "video",
     poster: video.thumbnail,
-    sources: video.qualities.map((m3u8: any) => ({
-        src: m3u8.url,
+    sources: video.qualities.map((res: any) => ({
+        src: res.url,
         type: "video/mp4",
-        size: m3u8.quality,
+        size: res.quality,
     })),
 };
 ---
