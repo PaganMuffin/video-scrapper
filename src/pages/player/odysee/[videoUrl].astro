@@ -1,0 +1,32 @@
+---
+import Player from "../../../components/Player.astro";
+import Layout from "../../../layouts/Layout.astro";
+import type { SourceInfo } from "plyr";
+import { Odysee } from "../../../scrapper/odysee";
+
+const videoUrl = Astro.params.videoUrl;
+
+if (!videoUrl) {
+    return {
+        status: 404,
+        error: "Video ID is required",
+    };
+}
+
+const video = new Odysee(atob(videoUrl));
+await video.fetchData();
+
+const source: SourceInfo = {
+    type: "video",
+    poster: video.thumbnail,
+    sources: video.qualities.map((res: any) => ({
+        src: res.url,
+        type: "video/mp4",
+        size: res.quality,
+    })),
+};
+---
+
+<Layout title={video.title}>
+    <Player source={source} />
+</Layout>
